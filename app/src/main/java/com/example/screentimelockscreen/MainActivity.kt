@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,10 +26,46 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import kotlin.random.Random
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
+
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        private const val REQUEST_CODE = 1000
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
+    private val overlayPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (Settings.canDrawOverlays(this)) {
+            Log.d("MainActivity", "Overlay permission granted.")
+            // Permission granted, continue with setup
+        } else {
+            Log.d("MainActivity", "Overlay permission denied.")
+            // Permission denied, handle the case
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (!Settings.canDrawOverlays(this)) {
+            Log.d("MainActivity", "Requesting overlay permission.")
+            val intent = Intent(
+                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                Uri.parse("package:$packageName")
+            )
+            overlayPermissionLauncher.launch(intent)
+        }
+
         enableEdgeToEdge()
         setContent {
             ScreenTimeLockScreenTheme {
@@ -46,6 +81,18 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+//    // Handle the result if needed
+//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+//        super.onActivityResult(requestCode, resultCode, data)
+//        if (requestCode == REQUEST_CODE) {
+//            if (Settings.canDrawOverlays(this)) {
+//                // Permission granted, continue with setup
+//            } else {
+//                // Permission denied, handle the case
+//            }
+//        }
+//    }
 }
 
 
