@@ -81,18 +81,6 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-
-//    // Handle the result if needed
-//    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-//        super.onActivityResult(requestCode, resultCode, data)
-//        if (requestCode == REQUEST_CODE) {
-//            if (Settings.canDrawOverlays(this)) {
-//                // Permission granted, continue with setup
-//            } else {
-//                // Permission denied, handle the case
-//            }
-//        }
-//    }
 }
 
 
