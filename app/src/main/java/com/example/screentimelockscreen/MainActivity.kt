@@ -36,9 +36,9 @@ import androidx.annotation.RequiresApi
 
 
 class MainActivity : ComponentActivity() {
-    companion object {
-        private const val REQUEST_CODE = 1000
-    }
+//    companion object {
+//        private const val REQUEST_CODE = 1000
+//    }
 
     @RequiresApi(Build.VERSION_CODES.M)
     private val overlayPermissionLauncher = registerForActivityResult(
