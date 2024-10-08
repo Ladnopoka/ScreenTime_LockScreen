@@ -27,6 +27,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import kotlin.random.Random
 import android.content.Intent
+import android.content.IntentFilter
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -36,9 +37,7 @@ import androidx.annotation.RequiresApi
 
 
 class MainActivity : ComponentActivity() {
-//    companion object {
-//        private const val REQUEST_CODE = 1000
-//    }
+    private val screenOnReceiver = ScreenOnReceiver()
 
     @RequiresApi(Build.VERSION_CODES.M)
     private val overlayPermissionLauncher = registerForActivityResult(
@@ -66,12 +65,15 @@ class MainActivity : ComponentActivity() {
             overlayPermissionLauncher.launch(intent)
         }
 
+        // Register the receiver for screen on events
+        val filter = IntentFilter(Intent.ACTION_SCREEN_ON)
+        registerReceiver(screenOnReceiver, filter)
+
         enableEdgeToEdge()
         setContent {
             ScreenTimeLockScreenTheme {
                 Scaffold(modifier = Modifier
                     .fillMaxSize()
-                    //.background(Color.Blue)
                 ) { innerPadding ->
                     Greeting(
                         name = "ScreenTime LockScreen",
@@ -79,6 +81,12 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+
+        fun onDestroy() {
+            super.onDestroy()
+            // Unregister the receiver when the activity is destroyed
+            unregisterReceiver(screenOnReceiver)
         }
     }
 }

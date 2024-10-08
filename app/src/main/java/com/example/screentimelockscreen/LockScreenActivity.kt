@@ -3,25 +3,24 @@ package com.example.screentimelockscreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import com.example.screentimelockscreen.ui.theme.ScreenTimeLockScreenTheme
+import android.util.Log
 
 class LockScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Log.d("LockScreenActivity", "LockScreenActivity launched")
+
         setContent {
             ScreenTimeLockScreenTheme {
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.LightGray)
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    // Your background image and text components here
-                    // You can reuse the Greeting Composable or customize this further
+                    // Reuse the Greeting composable here to display the same content as MainActivity
+                    Greeting(name = "ScreenTime LockScreen")
                 }
             }
         }
