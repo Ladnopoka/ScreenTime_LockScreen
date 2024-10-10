@@ -8,19 +8,35 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
 import com.example.screentimelockscreen.ui.theme.ScreenTimeLockScreenTheme
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Text
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 class LockScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("LockScreenActivity", "LockScreenActivity launched")
-
         setContent {
             ScreenTimeLockScreenTheme {
+                val appUsageData = UsageStatsHelper.getTopUsedApps(this)
+
                 Box(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState())
                 ) {
-                    // Fetch and display app usage information
-                    Greeting(name = "ScreenTime LockScreen")
+                    Text(
+                        text = buildString {
+                            append("App Usage for the last 24 hours:\n\n")
+                            for ((packageName, time) in appUsageData) {
+                                append("$packageName: ${time / 1000 / 60} minutes\n")
+                            }
+                        },
+                        fontSize = 16.sp
+                    )
                 }
             }
         }
