@@ -25,6 +25,7 @@
         </activity>
         <activity android:name=".LockScreenActivity"
             android:theme="@style/Theme.ScreenTimeLockScreen"
+            android:launchMode="singleTask"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
