@@ -64,25 +64,7 @@ class MainActivity : ComponentActivity() {
             )
             overlayPermissionLauncher.launch(intent)
         }
-
-//        // Register the receiver for screen on events
-//        val filter = IntentFilter(Intent.ACTION_SCREEN_ON)
-//        registerReceiver(screenOnReceiver, filter)
-//
-//        enableEdgeToEdge()
-//        setContent {
-//            ScreenTimeLockScreenTheme {
-//                Scaffold(modifier = Modifier
-//                    .fillMaxSize()
-//                ) { innerPadding ->
-//                    Greeting(
-//                        name = "ScreenTime LockScreen",
-//                        modifier = Modifier.padding(innerPadding)
-//                    )
-//                }
-//            }
-//        }
-
+        
         // Start the LockScreenService
         val serviceIntent = Intent(this, LockScreenService::class.java)
         startService(serviceIntent)
