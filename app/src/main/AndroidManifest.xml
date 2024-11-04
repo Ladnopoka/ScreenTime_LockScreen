@@ -3,7 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS" tools:ignore="ProtectedPermissions,UnusedManifestResource" />
+
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -17,7 +23,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.ScreenTimeLockScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -25,14 +30,27 @@
             </intent-filter>
         </activity>
         <activity android:name=".LockScreenActivity"
-            android:exported="true"
-            android:theme="@style/Theme.ScreenTimeLockScreen">
+            android:theme="@style/Theme.ScreenTimeLockScreen"
+            android:launchMode="singleTask"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver android:name=".ScreenOnReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SCREEN_ON" />
+            </intent-filter>
+        </receiver>
+        <service
+            android:name=".LockScreenService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="systemExempted">
+        </service>
+
     </application>
-
-
 </manifest>
