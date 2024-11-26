@@ -14,15 +14,22 @@ object UsageStatsHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
             val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
-            // Set up a calendar for the time range (e.g., the past day)
+            // Set up a calendar for the time range (start from 6 AM today)
             val calendar = Calendar.getInstance()
-            calendar.add(Calendar.DAY_OF_YEAR, -1) // Get stats for the last 24 hours
+            calendar.set(Calendar.HOUR_OF_DAY, 6) // Set hour to 6 AM
+            calendar.set(Calendar.MINUTE, 0) // Set minutes to 0
+            calendar.set(Calendar.SECOND, 0) // Set seconds to 0
+            calendar.set(Calendar.MILLISECOND, 0) // Set milliseconds to 0
+            val startTime = calendar.timeInMillis
 
-            // Fetch usage stats
+            // End time is the current time
+            val endTime = System.currentTimeMillis()
+
+            // Fetch usage stats from 6 AM onwards
             return usageStatsManager.queryUsageStats(
                 UsageStatsManager.INTERVAL_DAILY,
-                calendar.timeInMillis,
-                System.currentTimeMillis()
+                startTime,
+                endTime
             )
         } else {
             // If API level is below 22, return an empty list

@@ -55,9 +55,9 @@ class LockScreenActivity : ComponentActivity() {
 
                     Text(
                         text = buildString {
-                            append("App Usage for the last 24 hours:\n\n")
+                            append("YOUR APP USAGE SINCE 6AM:\n\n")
                             for ((packageName, time) in appUsageData) {
-                                append("$packageName: ${time / 1000 / 60} minutes\n")
+                                append("$packageName: ${time / 1000 / 60} minutes\n\n")
                             }
                         },
                         fontSize = 16.sp,
