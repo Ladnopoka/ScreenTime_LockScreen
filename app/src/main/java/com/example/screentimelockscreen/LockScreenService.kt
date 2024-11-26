@@ -12,8 +12,9 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 
+//This service ensures the app runs in the background and
+//listens for screen-on events
 class LockScreenService : Service() {
-
     private val screenOnReceiver = ScreenOnReceiver()
 
     override fun onCreate() {

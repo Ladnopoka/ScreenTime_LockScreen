@@ -39,7 +39,9 @@ import android.app.usage.UsageStatsManager
 import android.widget.Toast
 import java.util.Calendar
 
-
+// Main entry point of the app
+// Handles Permissions, Overlay Permissions, Usage Stats Permissions
+// Starts LockScreenService
 class MainActivity : ComponentActivity() {
     private val screenOnReceiver = ScreenOnReceiver()
 
