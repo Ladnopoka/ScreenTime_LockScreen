@@ -36,7 +36,7 @@ import com.example.screentimelockscreen.ui.theme.ScreenTimeLockScreenTheme
 import com.example.screentimelockscreen.toBitmap
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.asImageBitmap
-
+import java.util.Locale
 
 class LockScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -88,6 +88,23 @@ class LockScreenActivity : ComponentActivity() {
                             )
                         }
                         items(appUsageData) { appUsageInfo ->
+                            val usageSeconds = appUsageInfo.usageTime / 1000
+                            val hours = usageSeconds / 3600
+                            val minutes = (usageSeconds % 3600) / 60
+                            val seconds = usageSeconds % 60
+
+                            val displayText = buildString {
+                                if (hours > 0) append("$hours hr")
+                                if (minutes > 0) {
+                                    if (isNotEmpty()) append(", ")
+                                    append("$minutes min")
+                                }
+                                if (seconds > 0 || isEmpty()) {
+                                    if (isNotEmpty()) append(", ")
+                                    append("$seconds sec")
+                                }
+                            }
+
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -120,7 +137,7 @@ class LockScreenActivity : ComponentActivity() {
                                         )
                                     )
                                     Text(
-                                        text = "${appUsageInfo.usageTime / 1000 / 60} minutes",
+                                        text = displayText,
                                         fontSize = 14.sp,
                                         color = Color.Gray
                                     )
