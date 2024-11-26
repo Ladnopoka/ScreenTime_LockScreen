@@ -82,22 +82,15 @@ class MainActivity : ComponentActivity() {
         val serviceIntent = Intent(this, LockScreenService::class.java)
         startService(serviceIntent)
 
-        setContent {
-            ScreenTimeLockScreenTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "ScreenTime LockScreen",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
-        }
 
-        fun onDestroy() {
-            super.onDestroy()
-            // Unregister the receiver when the activity is destroyed
-            unregisterReceiver(screenOnReceiver)
+        // Launch LockScreenActivity
+        val lockScreenIntent = Intent(this, LockScreenActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
+        startActivity(lockScreenIntent)
+
+        // Optional: Finish MainActivity so it doesn't stay in the activity stack
+        finish()
     }
 
     // Function to check if the app has usage access permission
@@ -135,54 +128,10 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    // List of drawable resource IDs
-    val images = listOf(
-        R.drawable.background1,
-        R.drawable.background2,
-        R.drawable.background3
-    )
-
-    // Select a random image
-    val randomImage = remember { images[Random.nextInt(images.size)] }
-
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize() // This makes the Box fill the entire screen
-            //.background(Color.Cyan) // Set the background color for the whole screen
-    ) {
-        // Set the randomly selected image as the background
-        Image(
-            painter = painterResource(id = randomImage),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop // Ensures the image covers the entire screen
-        )
-
-
-        Text(
-            text = "ScreenTime LockScreen",
-            modifier = modifier
-                .align(Alignment.Center) // Center the text within the Box
-                .padding(16.dp) // Padding around the text
-                .border(2.dp, Color.Black)
-                .shadow(4.dp),
-            fontSize = 24.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White,
-            textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ScreenTimeLockScreenTheme {
-        Greeting("Android")
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun GreetingPreview() {
+//    ScreenTimeLockScreenTheme {
+//        Greeting("Android")
+//    }
+//}

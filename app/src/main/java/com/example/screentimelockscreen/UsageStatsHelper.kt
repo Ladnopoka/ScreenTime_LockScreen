@@ -4,6 +4,7 @@ import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.os.Build
+import androidx.compose.foundation.layout.BoxScope
 import java.util.Calendar
 
 object UsageStatsHelper {

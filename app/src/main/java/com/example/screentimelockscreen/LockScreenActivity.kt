@@ -12,22 +12,47 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
+import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.random.Random
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 
 class LockScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ScreenTimeLockScreenTheme {
-                val appUsageData = UsageStatsHelper.getTopUsedApps(this)
-
                 Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState())
+                    modifier = Modifier.fillMaxSize()
                 ) {
+                    // Random Background Image
+                    val images = listOf(
+                        R.drawable.background1,
+                        R.drawable.background2,
+                        R.drawable.background3
+                    )
+                    val randomImage = remember { images[Random.nextInt(images.size)] }
+
+                    Image(
+                        painter = painterResource(id = randomImage),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+
+                    // App Usage Data
+                    val appUsageData = UsageStatsHelper.getTopUsedApps(this@LockScreenActivity)
+
                     Text(
                         text = buildString {
                             append("App Usage for the last 24 hours:\n\n")
@@ -35,7 +60,22 @@ class LockScreenActivity : ComponentActivity() {
                                 append("$packageName: ${time / 1000 / 60} minutes\n")
                             }
                         },
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
+                        color = Color.White, // Use white text for better visibility
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .align(Alignment.Center)
+                            .verticalScroll(rememberScrollState())
+                            //.background(Color(0x80000000)) // Semi-transparent black background
+                            .padding(8.dp), // Padding inside the text block
+                        style = TextStyle(
+                            shadow = Shadow(
+                                color = Color.Black, // Drop shadow color
+                                offset = Offset(2f, 2f), // Shadow offset
+                                blurRadius = 4f // Shadow blur radius
+                            ),
+                            textAlign = TextAlign.Left // Optional alignment
+                        )
                     )
                 }
             }
