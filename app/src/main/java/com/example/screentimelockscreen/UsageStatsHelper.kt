@@ -3,9 +3,16 @@ package com.example.screentimelockscreen
 import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.compose.foundation.layout.BoxScope
 import java.util.Calendar
+
+data class AppUsageInfo(
+    val appName: String,
+    val usageTime: Long,
+    val appIcon: android.graphics.drawable.Drawable
+)
 
 object UsageStatsHelper {
 
@@ -37,21 +44,29 @@ object UsageStatsHelper {
         }
     }
 
-    fun getTopUsedApps(context: Context): List<Pair<String, Long>> {
+    fun getTopUsedApps(context: Context): List<AppUsageInfo> {
         val usageStatsList = getAppUsageStats(context)
-        val appUsageMap = mutableMapOf<String, Long>()
+        val packageManager = context.packageManager
+        val appUsageList = mutableListOf<AppUsageInfo>()
 
         for (usageStat in usageStatsList) {
-            val packageName = usageStat.packageName
-            val totalTimeInForeground = usageStat.totalTimeInForeground
+            try {
+                val appName = packageManager.getApplicationLabel(
+                    packageManager.getApplicationInfo(usageStat.packageName, 0)
+                ).toString()
+                val appIcon = packageManager.getApplicationIcon(usageStat.packageName)
+                val usageTime = usageStat.totalTimeInForeground
 
-            // Only consider apps that were used
-            if (totalTimeInForeground > 0) {
-                appUsageMap[packageName] = totalTimeInForeground
+                // Only add apps with usage time greater than 0
+                if (usageTime > 0) {
+                    appUsageList.add(AppUsageInfo(appName, usageTime, appIcon))
+                }
+            } catch (e: PackageManager.NameNotFoundException) {
+                // Ignore apps that are not found
             }
         }
 
-        // Sort the map by usage time in descending order
-        return appUsageMap.toList().sortedByDescending { it.second }
+        // Sort apps by usage time in descending order
+        return appUsageList.sortedByDescending { it.usageTime }
     }
 }

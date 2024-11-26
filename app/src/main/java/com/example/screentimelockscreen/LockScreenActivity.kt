@@ -18,6 +18,11 @@ import androidx.compose.ui.unit.sp
 import kotlin.random.Random
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Alignment
@@ -25,24 +30,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import com.example.screentimelockscreen.ui.theme.ScreenTimeLockScreenTheme
+import com.example.screentimelockscreen.toBitmap
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.graphics.asImageBitmap
+
 
 class LockScreenActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ScreenTimeLockScreenTheme {
+                // App Usage Data
+                val appUsageData: List<AppUsageInfo> = UsageStatsHelper.getTopUsedApps(this@LockScreenActivity)
+
+                // Random Background Image
+                val images = listOf(
+                    R.drawable.background1,
+                    R.drawable.background2,
+                    R.drawable.background3
+                )
+                val randomImage = remember { images[Random.nextInt(images.size)] }
+
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    // Random Background Image
-                    val images = listOf(
-                        R.drawable.background1,
-                        R.drawable.background2,
-                        R.drawable.background3
-                    )
-                    val randomImage = remember { images[Random.nextInt(images.size)] }
-
+                    // Background Image
                     Image(
                         painter = painterResource(id = randomImage),
                         contentDescription = null,
@@ -50,33 +65,69 @@ class LockScreenActivity : ComponentActivity() {
                         contentScale = ContentScale.Crop
                     )
 
-                    // App Usage Data
-                    val appUsageData = UsageStatsHelper.getTopUsedApps(this@LockScreenActivity)
-
-                    Text(
-                        text = buildString {
-                            append("YOUR APP USAGE SINCE 6AM:\n\n")
-                            for ((packageName, time) in appUsageData) {
-                                append("$packageName: ${time / 1000 / 60} minutes\n\n")
-                            }
-                        },
-                        fontSize = 16.sp,
-                        color = Color.White, // Use white text for better visibility
+                    // App Usage List
+                    LazyColumn(
                         modifier = Modifier
+                            .fillMaxSize()
                             .padding(16.dp)
-                            .align(Alignment.Center)
-                            .verticalScroll(rememberScrollState())
-                            //.background(Color(0x80000000)) // Semi-transparent black background
-                            .padding(8.dp), // Padding inside the text block
-                        style = TextStyle(
-                            shadow = Shadow(
-                                color = Color.Black, // Drop shadow color
-                                offset = Offset(2f, 2f), // Shadow offset
-                                blurRadius = 4f // Shadow blur radius
-                            ),
-                            textAlign = TextAlign.Left // Optional alignment
-                        )
-                    )
+                    ) {
+                        item {
+                            Text(
+                                text = "Your App Usage Since 6AM:",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(bottom = 16.dp),
+                                style = TextStyle(
+                                    shadow = Shadow(
+                                        color = Color.Black,
+                                        offset = Offset(2f, 2f),
+                                        blurRadius = 4f
+                                    )
+                                )
+                            )
+                        }
+                        items(appUsageData) { appUsageInfo ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // App Icon
+                                Image(
+                                    bitmap = appUsageInfo.appIcon.toBitmap().asImageBitmap(),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .padding(end = 16.dp),
+                                    contentScale = ContentScale.Crop
+                                )
+
+                                // App Name and Usage Time
+                                Column {
+                                    Text(
+                                        text = appUsageInfo.appName,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White,
+                                        style = TextStyle(
+                                            shadow = Shadow(
+                                                color = Color.Black,
+                                                offset = Offset(1f, 1f),
+                                                blurRadius = 2f
+                                            )
+                                        )
+                                    )
+                                    Text(
+                                        text = "${appUsageInfo.usageTime / 1000 / 60} minutes",
+                                        fontSize = 14.sp,
+                                        color = Color.Gray
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -84,13 +135,10 @@ class LockScreenActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Fetch and update the app usage information when the activity resumes
         updateAppUsageData()
     }
 
     private fun updateAppUsageData() {
-        // Code to fetch app usage data and update the UI
         Log.d("LockScreenActivity", "Updating app usage data")
-        // TODO: Implement logic to fetch and display app usage data
     }
 }
