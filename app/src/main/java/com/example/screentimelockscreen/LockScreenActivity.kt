@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.random.Random
 import androidx.compose.foundation.Image
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.Alignment
@@ -27,6 +29,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 
 class LockScreenActivity : ComponentActivity() {
+    private val appUsageData = mutableStateOf<List<Pair<String, Long>>>(emptyList())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -34,7 +38,7 @@ class LockScreenActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    // Random Background Image
+                    // UI Components (dynamic background, etc.)
                     val images = listOf(
                         R.drawable.background1,
                         R.drawable.background2,
@@ -49,44 +53,8 @@ class LockScreenActivity : ComponentActivity() {
                         contentScale = ContentScale.Crop
                     )
 
-                    // App Usage Data
-                    val appUsageData = UsageStatsHelper.getTopUsedApps(this@LockScreenActivity)
-
-                    Text(
-                        text = buildString {
-                            append("App Usage since 6AM:\n\n")
-                            for ((packageName, time) in appUsageData) {
-                                val hours = time / (1000 * 60 * 60)
-                                val minutes = (time % (1000 * 60 * 60)) / (1000 * 60)
-                                val seconds = (time % (1000 * 60)) / 1000
-
-
-                                // Build the time string dynamically
-                                val timeString = buildString {
-                                    if (hours > 0) append("${hours}h ")
-                                    if (minutes > 0 || hours > 0) append("${minutes}m ")
-                                    append("${seconds}s")
-                                }
-
-                                append("$packageName: $timeString\n")
-                            }
-                        },
-                        fontSize = 16.sp,
-                        color = Color.White, // Use white text for better visibility
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.Center)
-                            .verticalScroll(rememberScrollState()),
-                        style = TextStyle(
-                            shadow = Shadow(
-                                color = Color.Black, // Drop shadow color
-                                offset = Offset(2f, 2f), // Shadow offset
-                                blurRadius = 4f // Shadow blur radius
-                            ),
-                            lineHeight = 24.sp, // Add more space between lines
-                            textAlign = TextAlign.Left // Optional alignment
-                        )
-                    )
+                    // Display app usage data
+                    AppUsageDisplay()
                 }
             }
         }
@@ -94,13 +62,55 @@ class LockScreenActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Fetch and update the app usage information when the activity resumes
-        updateAppUsageData()
+        // Update app usage data every time the activity resumes
+        refreshAppUsageData()
     }
 
-    private fun updateAppUsageData() {
-        // Code to fetch app usage data and update the UI
-        Log.d("LockScreenActivity", "Updating app usage data")
-        // TODO: Implement logic to fetch and display app usage data
+    private fun refreshAppUsageData() {
+        // Fetch the latest app usage data
+        appUsageData.value = UsageStatsHelper.getTopUsedApps(this)
+
+        // Log for debugging
+        Log.d("LockScreenActivity", "App usage data refreshed: ${appUsageData.value}")
+    }
+
+    @Composable
+    fun AppUsageDisplay() {
+        val usageList = appUsageData.value // Observe changes in app usage data
+
+        Text(
+            text = buildString {
+                append("App Usage since 6AM:\n\n")
+                for ((packageName, time) in usageList) {
+                    val hours = time / (1000 * 60 * 60)
+                    val minutes = (time % (1000 * 60 * 60)) / (1000 * 60)
+                    val seconds = (time % (1000 * 60)) / 1000
+
+                    // Build the time string dynamically
+                    val timeString = buildString {
+                        if (hours > 0) append("${hours}h ")
+                        if (minutes > 0 || hours > 0) append("${minutes}m ")
+                        append("${seconds}s")
+                    }
+
+                    append("$packageName: $timeString\n")
+                }
+            },
+            fontSize = 16.sp,
+            color = Color.White,
+            modifier = Modifier
+                .padding(16.dp)
+                //.align(Alignment.Center)
+                .verticalScroll(rememberScrollState()),
+            style = TextStyle(
+                shadow = Shadow(
+                    color = Color.Black,
+                    offset = Offset(2f, 2f),
+                    blurRadius = 4f
+                ),
+                lineHeight = 24.sp,
+                textAlign = TextAlign.Left
+            )
+        )
     }
 }
