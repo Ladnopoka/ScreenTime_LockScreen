@@ -4,7 +4,7 @@ import android.app.usage.UsageStats
 import android.app.usage.UsageStatsManager
 import android.content.Context
 import android.os.Build
-import androidx.compose.foundation.layout.BoxScope
+import android.util.Log
 import java.util.Calendar
 
 object UsageStatsHelper {
@@ -19,11 +19,29 @@ object UsageStatsHelper {
             calendar.add(Calendar.DAY_OF_YEAR, -1) // Get stats for the last 24 hours
 
             // Fetch usage stats
-            return usageStatsManager.queryUsageStats(
+            val usageStats = usageStatsManager.queryUsageStats(
                 UsageStatsManager.INTERVAL_DAILY,
                 calendar.timeInMillis,
                 System.currentTimeMillis()
             )
+
+            // Log each app's usage stats for debugging
+            val filteredUsageStats = usageStats.filter { it.totalTimeInForeground > 0 }
+                .sortedByDescending { it.totalTimeInForeground }
+
+            for (usageStat in filteredUsageStats) {
+                val totalTimeInMillis = usageStat.totalTimeInForeground
+                val hours = totalTimeInMillis / (1000 * 60 * 60)
+                val minutes = (totalTimeInMillis % (1000 * 60 * 60)) / (1000 * 60)
+                val seconds = (totalTimeInMillis % (1000 * 60)) / 1000
+
+                Log.d(
+                    "UsageStatsFiltered",
+                    "Package: ${usageStat.packageName}, Time: ${hours}h ${minutes}m ${seconds}s"
+                )
+            }
+
+            return usageStats
         } else {
             // If API level is below 22, return an empty list
             return emptyList()
