@@ -54,9 +54,21 @@ class LockScreenActivity : ComponentActivity() {
 
                     Text(
                         text = buildString {
-                            append("App Usage for the last 24 hours:\n\n")
+                            append("App Usage since 6AM:\n\n")
                             for ((packageName, time) in appUsageData) {
-                                append("$packageName: ${time / 1000 / 60} minutes\n")
+                                val hours = time / (1000 * 60 * 60)
+                                val minutes = (time % (1000 * 60 * 60)) / (1000 * 60)
+                                val seconds = (time % (1000 * 60)) / 1000
+
+
+                                // Build the time string dynamically
+                                val timeString = buildString {
+                                    if (hours > 0) append("${hours}h ")
+                                    if (minutes > 0 || hours > 0) append("${minutes}m ")
+                                    append("${seconds}s")
+                                }
+
+                                append("$packageName: $timeString\n")
                             }
                         },
                         fontSize = 16.sp,
@@ -64,15 +76,14 @@ class LockScreenActivity : ComponentActivity() {
                         modifier = Modifier
                             .padding(16.dp)
                             .align(Alignment.Center)
-                            .verticalScroll(rememberScrollState())
-                            //.background(Color(0x80000000)) // Semi-transparent black background
-                            .padding(8.dp), // Padding inside the text block
+                            .verticalScroll(rememberScrollState()),
                         style = TextStyle(
                             shadow = Shadow(
                                 color = Color.Black, // Drop shadow color
                                 offset = Offset(2f, 2f), // Shadow offset
                                 blurRadius = 4f // Shadow blur radius
                             ),
+                            lineHeight = 24.sp, // Add more space between lines
                             textAlign = TextAlign.Left // Optional alignment
                         )
                     )

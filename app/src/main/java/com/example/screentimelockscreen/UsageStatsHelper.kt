@@ -14,15 +14,35 @@ object UsageStatsHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
             val usageStatsManager = context.getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
 
-            // Set up a calendar for the time range (e.g., the past day)
-            val calendar = Calendar.getInstance()
-            calendar.add(Calendar.DAY_OF_YEAR, -1) // Get stats for the last 24 hours
+            // Get the current time
+            val now = System.currentTimeMillis()
 
-            // Fetch usage stats
-            val usageStats = usageStatsManager.queryUsageStats(
+            // Set up a calendar for 6 AM today
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = now
+            calendar.set(Calendar.HOUR_OF_DAY, 6)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+
+            // Determine start time
+            val startTime = if (now >= calendar.timeInMillis) {
+                // If it's after 6 AM, use today's 6 AM
+                calendar.timeInMillis
+            } else {
+                // Otherwise, use 6 AM from the previous day
+                calendar.add(Calendar.DAY_OF_YEAR, -1)
+                calendar.timeInMillis
+            }
+
+            // End time is the current time
+            val endTime = now
+
+            // Fetch usage stats for the time range
+            val usageStats =  usageStatsManager.queryUsageStats(
                 UsageStatsManager.INTERVAL_DAILY,
-                calendar.timeInMillis,
-                System.currentTimeMillis()
+                startTime,
+                endTime
             )
 
             // Log each app's usage stats for debugging
