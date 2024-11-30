@@ -1,5 +1,6 @@
 package com.example.screentimelockscreen
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.WindowManager
@@ -18,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.random.Random
 import androidx.compose.foundation.Image
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.layout.ContentScale
@@ -31,6 +33,9 @@ import androidx.compose.ui.text.style.TextAlign
 
 class LockScreenActivity : ComponentActivity() {
     private val appUsageData = mutableStateOf<List<Pair<String, Long>>>(emptyList())
+
+    private val PREFS_NAME = "ScreenTimeLockScreenPrefs"
+    private val KEY_RESET_TIMESTAMP = "reset_timestamp"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -80,39 +85,67 @@ class LockScreenActivity : ComponentActivity() {
     fun AppUsageDisplay() {
         val usageList = appUsageData.value // Observe changes in app usage data
 
-        Text(
-            text = buildString {
-                append("App Usage since 6AM:\n\n")
-                for ((packageName, time) in usageList) {
-                    val hours = time / (1000 * 60 * 60)
-                    val minutes = (time % (1000 * 60 * 60)) / (1000 * 60)
-                    val seconds = (time % (1000 * 60)) / 1000
+        Box(modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = buildString {
+                    append("App Usage since 6AM:\n\n")
+                    for ((packageName, time) in usageList) {
+                        val hours = time / (1000 * 60 * 60)
+                        val minutes = (time % (1000 * 60 * 60)) / (1000 * 60)
+                        val seconds = (time % (1000 * 60)) / 1000
 
-                    // Build the time string dynamically
-                    val timeString = buildString {
-                        if (hours > 0) append("${hours}h ")
-                        if (minutes > 0 || hours > 0) append("${minutes}m ")
-                        append("${seconds}s")
+                        // Build the time string dynamically
+                        val timeString = buildString {
+                            if (hours > 0) append("${hours}h ")
+                            if (minutes > 0 || hours > 0) append("${minutes}m ")
+                            append("${seconds}s")
+                        }
+
+                        append("$packageName: $timeString\n")
                     }
-
-                    append("$packageName: $timeString\n")
-                }
-            },
-            fontSize = 16.sp,
-            color = Color.White,
-            modifier = Modifier
-                .padding(16.dp)
-                //.align(Alignment.Center)
-                .verticalScroll(rememberScrollState()),
-            style = TextStyle(
-                shadow = Shadow(
-                    color = Color.Black,
-                    offset = Offset(2f, 2f),
-                    blurRadius = 4f
-                ),
-                lineHeight = 24.sp,
-                textAlign = TextAlign.Left
+                },
+                fontSize = 16.sp,
+                color = Color.White,
+                modifier = Modifier
+                    .padding(16.dp)
+                    //.align(Alignment.Center)
+                    .verticalScroll(rememberScrollState()),
+                style = TextStyle(
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(2f, 2f),
+                        blurRadius = 4f
+                    ),
+                    lineHeight = 24.sp,
+                    textAlign = TextAlign.Left
+                )
             )
-        )
+
+            // Reset Button
+            Button(
+                onClick = { resetAppUsage() },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(16.dp)
+            ) {
+                Text(text = "Reset Usage Stats")
+            }
+        }
+    }
+
+    fun getResetTimestamp(): Long {
+        val sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        return sharedPreferences.getLong(KEY_RESET_TIMESTAMP, 0)
+    }
+
+    private fun setResetTimestamp(timestamp: Long) {
+        val sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        sharedPreferences.edit().putLong(KEY_RESET_TIMESTAMP, timestamp).apply()
+    }
+
+    private fun resetAppUsage() {
+        val currentTime = System.currentTimeMillis()
+        setResetTimestamp(currentTime)
+        refreshAppUsageData() // Immediately refresh the displayed stats
     }
 }

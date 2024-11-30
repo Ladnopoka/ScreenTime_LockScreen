@@ -115,11 +115,3 @@ class MainActivity : ComponentActivity() {
         finish()
     }
 }
-
-//@Preview(showBackground = true)
-//@Composable
-//fun GreetingPreview() {
-//    ScreenTimeLockScreenTheme {
-//        Greeting("Android")
-//    }
-//}
