@@ -12,7 +12,7 @@ import androidx.annotation.RequiresApi
 import android.app.AppOpsManager
 import android.content.Context
 import android.widget.Toast
-
+import androidx.core.content.ContextCompat
 
 // Main entry point of the app
 // Handles Permissions, Overlay Permissions, Usage Stats Permissions
@@ -44,6 +44,8 @@ class MainActivity : ComponentActivity() {
                 Uri.parse("package:$packageName")
             )
             overlayPermissionLauncher.launch(intent)
+        } else {
+            startLockScreenService()
         }
 
         requestUsageAccessPermission()
@@ -100,6 +102,17 @@ class MainActivity : ComponentActivity() {
             val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
             startActivity(intent)
         }
+    }
+
+    private fun startLockScreenService() {
+        val serviceIntent = Intent(this, LockScreenService::class.java)
+        ContextCompat.startForegroundService(this, serviceIntent)
+
+        val lockScreenIntent = Intent(this, LockScreenActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        }
+        startActivity(lockScreenIntent)
+        finish()
     }
 }
 

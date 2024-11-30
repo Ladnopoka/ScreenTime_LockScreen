@@ -21,12 +21,12 @@ class LockScreenService : Service() {
         super.onCreate()
         Log.d("LockScreenService", "Service created")
 
+        // Start as a foreground service with a notification
+        startForegroundServiceWithNotification()
+
         // Register the screen on receiver
         val filter = IntentFilter(Intent.ACTION_SCREEN_ON)
         registerReceiver(screenOnReceiver, filter)
-
-        // Start the service as a foreground service
-        startForegroundService()
     }
 
     private fun startForegroundService() {
@@ -50,6 +50,32 @@ class LockScreenService : Service() {
 
             startForeground(1, notification)
         }
+    }
+
+    private fun startForegroundServiceWithNotification() {
+        val channelId = "lockscreen_service_channel"
+        val channelName = "LockScreen Service"
+
+        // Create notification channel for Android O and above
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                channelId,
+                channelName,
+                NotificationManager.IMPORTANCE_LOW
+            )
+            val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        // Build the notification
+        val notification: Notification = NotificationCompat.Builder(this, channelId)
+            .setContentTitle("ScreenTime LockScreen Service")
+            .setContentText("Running to monitor screen events")
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .build()
+
+        // Start the service in the foreground
+        startForeground(1, notification)
     }
 
     override fun onDestroy() {
