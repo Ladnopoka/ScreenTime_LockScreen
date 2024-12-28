@@ -58,6 +58,9 @@ class LockScreenActivity : ComponentActivity() {
         R.raw.photo15
     )
 
+    // Mutable queue for the shuffled image IDs
+    private val imageQueue = mutableListOf<Int>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -80,6 +83,8 @@ class LockScreenActivity : ComponentActivity() {
         }
 
         // Refresh image and app usage data on creation
+        // Initial setup
+        reshuffleImages()
         refreshBackgroundImage()
         refreshAppUsageData()
     }
@@ -92,15 +97,23 @@ class LockScreenActivity : ComponentActivity() {
 
     override fun onRestart() {
         super.onRestart()
-        refreshBackgroundImage()
+        //refreshBackgroundImage()
         refreshAppUsageData()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
-            refreshBackgroundImage()
+            //refreshBackgroundImage()
+            Log.d("LockScreenActivityImg", "Windows Focus Changed")
+
         }
+    }
+
+    private fun reshuffleImages() {
+        imageQueue.clear()
+        imageQueue.addAll(personalPhotoIds.shuffled())
+        Log.d("LockScreenActivityImg", "Image queue reshuffled: $imageQueue")
     }
 
     private fun refreshAppUsageData() {
@@ -119,7 +132,7 @@ class LockScreenActivity : ComponentActivity() {
             inputStream.close()
             bitmap.asImageBitmap()
         } catch (e: Exception) {
-            Log.e("LockScreenActivity", "Error loading image resource ID: $resourceId", e)
+            Log.e("LockScreenActivityImg", "Error loading image resource ID: $resourceId", e)
             null
         }
     }
@@ -135,9 +148,15 @@ class LockScreenActivity : ComponentActivity() {
     }
 
     private fun refreshBackgroundImage() {
-        val newIndex = getRandomImageIndex()
-        currentImageBitmap.value = loadImageFromRaw(personalPhotoIds[newIndex])
-        Log.d("LockScreenActivity", "Background image refreshed to index: $newIndex")
+        // If the queue is empty, reshuffle the images
+        if (imageQueue.isEmpty()) {
+            reshuffleImages()
+        }
+
+        // Pop the next image from the queue
+        val nextImage = imageQueue.removeAt(0)
+        currentImageBitmap.value = loadImageFromRaw(nextImage)
+        Log.d("LockScreenActivityImg", "Background image refreshed to ID: $nextImage")
     }
 
     @Composable
