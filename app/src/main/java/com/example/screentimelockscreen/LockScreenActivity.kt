@@ -85,7 +85,6 @@ class LockScreenActivity : ComponentActivity() {
         // Refresh image and app usage data on creation
         // Initial setup
         reshuffleImages()
-        refreshBackgroundImage()
         refreshAppUsageData()
     }
 
