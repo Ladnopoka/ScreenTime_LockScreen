@@ -30,11 +30,14 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import java.util.Calendar
 
 class LockScreenActivity : ComponentActivity() {
     private val appUsageData = mutableStateOf<List<Pair<String, Long>>>(emptyList())
 
-    private val PREFS_NAME = "ScreenTimeLockScreenPrefs"
+    companion object {
+        const val PREFS_NAME = "ScreenTimeLockScreenPrefs"
+    }
     private val KEY_RESET_TIMESTAMP = "reset_timestamp"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -75,7 +78,9 @@ class LockScreenActivity : ComponentActivity() {
 
     private fun refreshAppUsageData() {
         // Fetch the latest app usage data
-        appUsageData.value = UsageStatsHelper.getTopUsedApps(this)
+        //appUsageData.value = UsageStatsHelper.getTopUsedApps(this)
+        appUsageData.value = UsageStatsHelper.getTopUsedAppsSinceReset(this)
+
 
         // Log for debugging
         Log.d("LockScreenActivity", "App usage data refreshed: ${appUsageData.value}")
@@ -135,17 +140,37 @@ class LockScreenActivity : ComponentActivity() {
 
     fun getResetTimestamp(): Long {
         val sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return sharedPreferences.getLong(KEY_RESET_TIMESTAMP, 0)
+        val timestamp = sharedPreferences.getLong(KEY_RESET_TIMESTAMP, 0)
+        Log.d("LockScreenActivity", "Retrieved reset timestamp: ${formatTimestamp(timestamp)}")
+        return timestamp
     }
 
     private fun setResetTimestamp(timestamp: Long) {
         val sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         sharedPreferences.edit().putLong(KEY_RESET_TIMESTAMP, timestamp).apply()
+        Log.d("LockScreenActivity", "Set reset timestamp: ${formatTimestamp(timestamp)}")
     }
 
     private fun resetAppUsage() {
         val currentTime = System.currentTimeMillis()
         setResetTimestamp(currentTime)
-        refreshAppUsageData() // Immediately refresh the displayed stats
+
+        // Ensure the timestamp is saved before refreshing
+        val sharedPreferences = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        sharedPreferences.edit().apply {
+            putLong(KEY_RESET_TIMESTAMP, currentTime)
+            apply() // Use apply() to save the changes asynchronously
+        }
+
+        // Clear accumulated usage times in SharedPreferences
+        sharedPreferences.edit().clear().apply()
+
+        refreshAppUsageData() // Refresh usage data only after timestamp is saved
+    }
+
+    fun formatTimestamp(timestamp: Long): String {
+        val calendar = Calendar.getInstance()
+        calendar.timeInMillis = timestamp
+        return android.text.format.DateFormat.format("yyyy-MM-dd HH:mm:ss", calendar).toString()
     }
 }
