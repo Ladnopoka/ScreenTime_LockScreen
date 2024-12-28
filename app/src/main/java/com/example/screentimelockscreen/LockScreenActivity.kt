@@ -36,6 +36,7 @@ class LockScreenActivity : ComponentActivity() {
     private val appUsageData = mutableStateOf<List<Pair<String, Long>>>(emptyList())
     private var currentImageIndex = 0 // Keeps track of the current image index
     private var lastImageIndex = -1 // Tracks the last used image index
+    private val currentImageBitmap = mutableStateOf<ImageBitmap?>(null)
 
 
     // List of resource IDs for the photos in res/raw/personal_photos
@@ -62,13 +63,10 @@ class LockScreenActivity : ComponentActivity() {
         setContent {
             ScreenTimeLockScreenTheme {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    // Display the current background image
-                    val currentImageBitmap = loadImageFromRaw(
-                        getRandomImageIndex()
-                    )
-                    if (currentImageBitmap != null) {
+                    val bitmap = currentImageBitmap.value
+                    if (bitmap != null) {
                         Image(
-                            bitmap = currentImageBitmap,
+                            bitmap = bitmap,
                             contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -80,14 +78,29 @@ class LockScreenActivity : ComponentActivity() {
                 }
             }
         }
+
+        // Refresh image and app usage data on creation
+        refreshBackgroundImage()
+        refreshAppUsageData()
     }
 
     override fun onResume() {
         super.onResume()
-        // Update the current image index and wrap around if necessary
-        //currentImageIndex = (currentImageIndex + 1) % personalPhotoIds.size
-        // Update app usage data every time the activity resumes
+        refreshBackgroundImage()
         refreshAppUsageData()
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        refreshBackgroundImage()
+        refreshAppUsageData()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            refreshBackgroundImage()
+        }
     }
 
     private fun refreshAppUsageData() {
@@ -116,9 +129,15 @@ class LockScreenActivity : ComponentActivity() {
         var newIndex: Int
         do {
             newIndex = Random.nextInt(personalPhotoIds.size)
-        } while (newIndex == lastImageIndex) // Ensure it's not the same as the last image
+        } while (newIndex == lastImageIndex)
         lastImageIndex = newIndex
-        return personalPhotoIds[newIndex]
+        return newIndex
+    }
+
+    private fun refreshBackgroundImage() {
+        val newIndex = getRandomImageIndex()
+        currentImageBitmap.value = loadImageFromRaw(personalPhotoIds[newIndex])
+        Log.d("LockScreenActivity", "Background image refreshed to index: $newIndex")
     }
 
     @Composable
