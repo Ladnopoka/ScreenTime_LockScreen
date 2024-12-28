@@ -27,31 +27,53 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import android.content.res.Resources
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import java.io.InputStream
 
 class LockScreenActivity : ComponentActivity() {
     private val appUsageData = mutableStateOf<List<Pair<String, Long>>>(emptyList())
+    private var currentImageIndex = 0 // Keeps track of the current image index
+    private var lastImageIndex = -1 // Tracks the last used image index
+
+
+    // List of resource IDs for the photos in res/raw/personal_photos
+    private val personalPhotoIds = listOf(
+        R.raw.photo1, // Corresponding to res/raw/personal_photos/photo1.jpg
+        R.raw.photo2,
+        R.raw.photo3,
+        R.raw.photo4,
+        R.raw.photo5,
+        R.raw.photo6,
+        R.raw.photo7,
+        R.raw.photo8,
+        R.raw.photo9,
+        R.raw.photo10,
+        R.raw.photo11,
+        R.raw.photo12,
+        R.raw.photo13,
+        R.raw.photo14,
+        R.raw.photo15
+    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ScreenTimeLockScreenTheme {
-                Box(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    // UI Components (dynamic background, etc.)
-                    val images = listOf(
-                        R.drawable.background1,
-                        R.drawable.background2,
-                        R.drawable.background3
+                Box(modifier = Modifier.fillMaxSize()) {
+                    // Display the current background image
+                    val currentImageBitmap = loadImageFromRaw(
+                        getRandomImageIndex()
                     )
-                    val randomImage = remember { images[Random.nextInt(images.size)] }
-
-                    Image(
-                        painter = painterResource(id = randomImage),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+                    if (currentImageBitmap != null) {
+                        Image(
+                            bitmap = currentImageBitmap,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
 
                     // Display app usage data
                     AppUsageDisplay()
@@ -62,6 +84,8 @@ class LockScreenActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Update the current image index and wrap around if necessary
+        //currentImageIndex = (currentImageIndex + 1) % personalPhotoIds.size
         // Update app usage data every time the activity resumes
         refreshAppUsageData()
     }
@@ -72,6 +96,29 @@ class LockScreenActivity : ComponentActivity() {
 
         // Log for debugging
         Log.d("LockScreenActivity", "App usage data refreshed: ${appUsageData.value}")
+    }
+
+    // Helper function to load an image from the res/raw directory
+    private fun loadImageFromRaw(resourceId: Int): ImageBitmap? {
+        return try {
+            val inputStream: InputStream = resources.openRawResource(resourceId)
+            val bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+            inputStream.close()
+            bitmap.asImageBitmap()
+        } catch (e: Exception) {
+            Log.e("LockScreenActivity", "Error loading image resource ID: $resourceId", e)
+            null
+        }
+    }
+
+    // Function to get a random image index, ensuring no immediate repetition
+    private fun getRandomImageIndex(): Int {
+        var newIndex: Int
+        do {
+            newIndex = Random.nextInt(personalPhotoIds.size)
+        } while (newIndex == lastImageIndex) // Ensure it's not the same as the last image
+        lastImageIndex = newIndex
+        return personalPhotoIds[newIndex]
     }
 
     @Composable

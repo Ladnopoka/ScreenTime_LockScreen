@@ -14,6 +14,7 @@ import android.content.Context
 import android.widget.Toast
 
 
+
 // Main entry point of the app
 // Handles Permissions, Overlay Permissions, Usage Stats Permissions
 // Starts LockScreenService
