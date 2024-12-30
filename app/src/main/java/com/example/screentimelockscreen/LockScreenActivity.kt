@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import android.content.res.Resources
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import java.io.InputStream
@@ -84,20 +85,6 @@ class LockScreenActivity : ComponentActivity() {
         setContent {
             ScreenTimeLockScreenTheme {
                 AppUsageScreen(this)
-//                Box(modifier = Modifier.fillMaxSize()) {
-//                    val bitmap = currentImageBitmap.value
-//                    if (bitmap != null) {
-//                        Image(
-//                            bitmap = bitmap,
-//                            contentDescription = null,
-//                            modifier = Modifier.fillMaxSize(),
-//                            contentScale = ContentScale.Crop
-//                        )
-//                    }
-//
-//                    // Display app usage data
-//                    AppUsageDisplay()
-//                }
             }
         }
 
@@ -155,16 +142,6 @@ class LockScreenActivity : ComponentActivity() {
         }
     }
 
-    // Function to get a random image index, ensuring no immediate repetition
-    private fun getRandomImageIndex(): Int {
-        var newIndex: Int
-        do {
-            newIndex = Random.nextInt(personalPhotoIds.size)
-        } while (newIndex == lastImageIndex)
-        lastImageIndex = newIndex
-        return newIndex
-    }
-
     private fun refreshBackgroundImage() {
         // If the queue is empty, reshuffle the images
         if (imageQueue.isEmpty()) {
@@ -183,9 +160,6 @@ class LockScreenActivity : ComponentActivity() {
         val usageList = appUsageData.value // Observe changes in app usage data
 
         // Retrieve weekly data
-        val context = LocalContext.current
-        val weeklyUsageData = remember { UsageStatsHelper.getWeeklyAppUsage(context) }
-        val barData = remember { prepareBarGraphData(weeklyUsageData) }
         Log.d("UsageListSeeWhatsUP", "Usage List: $usageList")
 
         Text(
@@ -288,13 +262,29 @@ class LockScreenActivity : ComponentActivity() {
             }
 
             Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                // Bar graph
-                WeeklyUsageBarGraph(data = barData)
+                // Frame for Bar Graph
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp) // Space around the frame
+                        .border(width = 2.dp, color = Color.Gray) // Frame
+                        .padding(8.dp) // Space inside the frame
+                ) {
+                    WeeklyUsageBarGraph(data = barData)
+                }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(16.dp)) // Add spacing
 
-                // App usage stats
-                AppUsageDisplay()
+                // Frame for App Stats
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(8.dp) // Space around the frame
+                        .border(width = 2.dp, color = Color.Gray) // Frame
+                        .padding(8.dp) // Space inside the frame
+                ) {
+                    AppUsageDisplay()
+                }
             }
         }
     }
