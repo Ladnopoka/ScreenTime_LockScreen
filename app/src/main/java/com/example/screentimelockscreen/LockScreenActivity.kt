@@ -31,6 +31,7 @@ import androidx.compose.ui.text.style.TextAlign
 import android.content.res.Resources
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -46,8 +47,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.shape.RoundedCornerShape
 import com.github.mikephil.charting.formatter.ValueFormatter
 import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
@@ -159,65 +163,97 @@ class LockScreenActivity : ComponentActivity() {
     fun AppUsageDisplay() {
         val usageList = appUsageData.value // Observe changes in app usage data
 
-        // Retrieve weekly data
+        // Log for debugging
         Log.d("UsageListSeeWhatsUP", "Usage List: $usageList")
 
-        Text(
-            text = buildString {
-                append("24 Hour App Usage:\n\n")
-                for ((packageName, time) in usageList) {
-                    val hours = time / (1000 * 60 * 60)
-                    val minutes = (time % (1000 * 60 * 60)) / (1000 * 60)
-                    val seconds = (time % (1000 * 60)) / 1000
-
-                    // Build the time string dynamically
-                    val timeString = buildString {
-                        if (hours > 0) append("${hours}h ")
-                        if (minutes > 0 || hours > 0) append("${minutes}m ")
-                        append("${seconds}s")
-                    }
-
-                    append("$packageName: $timeString\n")
-                }
-            },
-            fontSize = 16.sp,
-            color = Color.White,
+        Column(
             modifier = Modifier
-                .padding(16.dp)
-                //.align(Alignment.Center)
-                .verticalScroll(rememberScrollState()),
-            style = TextStyle(
-                shadow = Shadow(
-                    color = Color.Black,
-                    offset = Offset(2f, 2f),
-                    blurRadius = 4f
+                .fillMaxSize()
+                .padding(10.dp)
+        ) {
+            // Display "24 Hour App Usage:" text, fixed at the top
+            Text(
+                text = "24 Hour App Usage",
+                fontSize = 20.sp,
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                style = TextStyle(
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(6f, 6f),
+                        blurRadius = 4f
+                    ),
+                    lineHeight = 28.sp
                 ),
-                lineHeight = 24.sp,
-                textAlign = TextAlign.Left
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp) // Add spacing below the title
             )
-        )
+
+            // Display the usage stats in a scrollable area
+            Column(
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState()) // Apply scrolling only to stats
+            ) {
+                Text(
+                    text = buildString {
+                        for ((packageName, time) in usageList) {
+                            val hours = time / (1000 * 60 * 60)
+                            val minutes = (time % (1000 * 60 * 60)) / (1000 * 60)
+                            val seconds = (time % (1000 * 60)) / 1000
+
+                            // Build the time string dynamically
+                            val timeString = buildString {
+                                if (hours > 0) append("${hours}h ")
+                                if (minutes > 0 || hours > 0) append("${minutes}m ")
+                                append("${seconds}s")
+                            }
+
+                            append("$packageName: $timeString\n")
+                        }
+                    },
+                    fontSize = 16.sp,
+                    color = Color.White,
+                    style = TextStyle(
+                        shadow = Shadow(
+                            color = Color.Black,
+                            offset = Offset(2f, 2f),
+                            blurRadius = 4f
+                        ),
+                        lineHeight = 24.sp,
+                        textAlign = TextAlign.Left
+                    )
+                )
+            }
+        }
     }
 
     private fun prepareBarGraphData(weeklyUsageData: Map<String, Float>): BarData {
         val entries = mutableListOf<BarEntry>()
         val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
+        // Add bar entries
         for ((index, day) in daysOfWeek.withIndex()) {
             val usageHours = weeklyUsageData[day] ?: 0f
-
-            // Round fractional hours to the nearest minute
-            val totalMinutes = (usageHours * 60).toInt() // Convert hours to minutes
-            val roundedHours = totalMinutes / 60 // Integer hours
-            val remainingMinutes = totalMinutes % 60 // Remaining minutes
-
-            // Add entry to the bar graph using rounded hours and fractional minutes
-            val roundedUsage = roundedHours + (remainingMinutes / 60f) // Convert minutes back to fractional hours
-            entries.add(BarEntry(index.toFloat(), roundedUsage))
+            entries.add(BarEntry(index.toFloat(), usageHours))
         }
 
+        // Custom color list for the bars
+        val customColors = listOf(
+            Color(0xFFE57373), // Light red
+            Color(0xFF64B5F6), // Light blue
+            Color(0xFF81C784), // Light green
+            Color(0xFFFFD54F), // Light yellow
+            Color(0xFFBA68C8), // Light purple
+            Color(0xFFFF8A65), // Light orange
+            Color(0xFFAED581)  // Light lime
+        ).map { it.toArgb() } // Convert Compose Color to Android Color
+
+        // Create a BarDataSet
         val dataSet = BarDataSet(entries, "Weekly App Usage (Hours)").apply {
             valueTextSize = 12f
-            valueFormatter = TimeValueFormatter() // Use the custom formatter
+            colors = customColors // Assign the custom colors to the bars
+            valueFormatter = TimeValueFormatter() // Apply custom formatter
         }
 
         return BarData(dataSet)
@@ -293,14 +329,22 @@ class LockScreenActivity : ComponentActivity() {
                 )
             }
 
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+            Column(modifier = Modifier.fillMaxSize().padding(0.5.dp)) {
                 // Frame for Bar Graph
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp)
-                        .border(width = 2.dp, color = Color.Gray)
-                        .padding(8.dp)
+                        .padding(0.5.dp)
+                        .background(
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .border(
+                            width = 3.dp,
+                            color = Color.DarkGray,
+                            shape = RoundedCornerShape(18.dp)
+                        )
+                        .padding(5.dp)
                 ) {
                     WeeklyUsageBarGraph(data = barData)
                 }
@@ -311,9 +355,17 @@ class LockScreenActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp)
-                        .border(width = 2.dp, color = Color.Gray)
-                        .padding(8.dp)
+                        .padding(0.5.dp)
+                        .background(
+                            color = Color.Transparent,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .border(
+                            width = 3.dp,
+                            color = Color.DarkGray,
+                            shape = RoundedCornerShape(18.dp)
+                        )
+                        .padding(5.dp)
                 ) {
                     AppUsageDisplay()
                 }
