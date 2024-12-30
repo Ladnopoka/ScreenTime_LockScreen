@@ -46,6 +46,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import com.github.mikephil.charting.formatter.ValueFormatter
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -109,7 +110,6 @@ class LockScreenActivity : ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (hasFocus) {
-            //refreshBackgroundImage()
             Log.d("LockScreenActivityImg", "Windows Focus Changed")
             refreshBackgroundImage()
         }
@@ -204,11 +204,20 @@ class LockScreenActivity : ComponentActivity() {
 
         for ((index, day) in daysOfWeek.withIndex()) {
             val usageHours = weeklyUsageData[day] ?: 0f
-            entries.add(BarEntry(index.toFloat(), usageHours))
+
+            // Round fractional hours to the nearest minute
+            val totalMinutes = (usageHours * 60).toInt() // Convert hours to minutes
+            val roundedHours = totalMinutes / 60 // Integer hours
+            val remainingMinutes = totalMinutes % 60 // Remaining minutes
+
+            // Add entry to the bar graph using rounded hours and fractional minutes
+            val roundedUsage = roundedHours + (remainingMinutes / 60f) // Convert minutes back to fractional hours
+            entries.add(BarEntry(index.toFloat(), roundedUsage))
         }
 
         val dataSet = BarDataSet(entries, "Weekly App Usage (Hours)").apply {
             valueTextSize = 12f
+            valueFormatter = TimeValueFormatter() // Use the custom formatter
         }
 
         return BarData(dataSet)
@@ -223,7 +232,12 @@ class LockScreenActivity : ComponentActivity() {
             factory = { context ->
                 BarChart(context).apply {
                     this.data = data
+
+                    // Configure chart description
                     description.isEnabled = false
+                    legend.isEnabled = false
+
+                    // X-axis styling
                     xAxis.apply {
                         valueFormatter = IndexAxisValueFormatter(
                             listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
@@ -231,10 +245,28 @@ class LockScreenActivity : ComponentActivity() {
                         granularity = 1f
                         position = XAxis.XAxisPosition.BOTTOM
                         textSize = 12f
+                        textColor = android.graphics.Color.WHITE // Change text color to white
                     }
-                    axisLeft.axisMinimum = 0f
+
+                    // Y-axis styling (Left)
+                    axisLeft.apply {
+                        textSize = 12f
+                        textColor = android.graphics.Color.WHITE // Change text color to white
+                    }
+
+                    // Disable right Y-axis
                     axisRight.isEnabled = false
-                    invalidate() // Refresh chart
+
+                    // Customize bar value text
+                    data.setValueTextSize(12f)
+                    data.setValueTextColor(android.graphics.Color.WHITE) // Change text color to white
+
+                    // Shadow effect for text (Optional, requires custom logic in MPAndroidChart)
+                    // Note: MPAndroidChart does not natively support shadow styling for text.
+                    // You would need to override drawing methods for advanced shadow effects.
+
+                    // Refresh chart
+                    invalidate()
                 }
             }
         )
@@ -245,14 +277,14 @@ class LockScreenActivity : ComponentActivity() {
     fun AppUsageScreen(context: Context) {
         val weeklyUsageData = remember { UsageStatsHelper.getWeeklyAppUsage(context) }
         val barData = remember { prepareBarGraphData(weeklyUsageData) }
-        val currentImageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
+        val currentImageBitmapState = remember { mutableStateOf(currentImageBitmap.value) }
 
-        // Load the background image
-        currentImageBitmap.value = loadImageFromRaw(context)
+        // Observe changes to currentImageBitmap
+        currentImageBitmap.value?.let { currentImageBitmapState.value = it }
 
         Box(modifier = Modifier.fillMaxSize()) {
             // Display background image
-            currentImageBitmap.value?.let { bitmap ->
+            currentImageBitmapState.value?.let { bitmap ->
                 Image(
                     bitmap = bitmap,
                     contentDescription = null,
@@ -266,40 +298,35 @@ class LockScreenActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp) // Space around the frame
-                        .border(width = 2.dp, color = Color.Gray) // Frame
-                        .padding(8.dp) // Space inside the frame
+                        .padding(8.dp)
+                        .border(width = 2.dp, color = Color.Gray)
+                        .padding(8.dp)
                 ) {
                     WeeklyUsageBarGraph(data = barData)
                 }
 
-                Spacer(modifier = Modifier.height(16.dp)) // Add spacing
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // Frame for App Stats
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(8.dp) // Space around the frame
-                        .border(width = 2.dp, color = Color.Gray) // Frame
-                        .padding(8.dp) // Space inside the frame
+                        .padding(8.dp)
+                        .border(width = 2.dp, color = Color.Gray)
+                        .padding(8.dp)
                 ) {
                     AppUsageDisplay()
                 }
             }
         }
     }
+}
 
-
-    private fun loadImageFromRaw(context: Context): ImageBitmap? {
-        val resourceId = R.raw.photo1 // Replace with logic to load desired image
-        return try {
-            val inputStream: InputStream = context.resources.openRawResource(resourceId)
-            val bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
-            inputStream.close()
-            bitmap.asImageBitmap()
-        } catch (e: Exception) {
-            Log.e("ImageLoad", "Failed to load image: $resourceId", e)
-            null
-        }
+class TimeValueFormatter : ValueFormatter() {
+    override fun getFormattedValue(value: Float): String {
+        val totalMinutes = (value * 60).toInt()
+        val hours = totalMinutes / 60
+        val minutes = totalMinutes % 60
+        return "${hours}h ${minutes}m"
     }
 }
