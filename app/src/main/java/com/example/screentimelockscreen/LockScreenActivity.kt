@@ -90,7 +90,7 @@ class LockScreenActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        refreshBackgroundImage()
+        //refreshBackgroundImage()
         refreshAppUsageData()
     }
 
@@ -105,7 +105,7 @@ class LockScreenActivity : ComponentActivity() {
         if (hasFocus) {
             //refreshBackgroundImage()
             Log.d("LockScreenActivityImg", "Windows Focus Changed")
-
+            refreshBackgroundImage()
         }
     }
 
