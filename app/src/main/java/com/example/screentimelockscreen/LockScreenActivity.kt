@@ -161,10 +161,11 @@ class LockScreenActivity : ComponentActivity() {
     @Composable
     fun AppUsageDisplay() {
         val usageList = appUsageData.value // Observe changes in app usage data
+        Log.d("UsageListSeeWhatsUP", "Usage List: $usageList")
 
         Text(
             text = buildString {
-                append("App Usage since 6AM:\n\n")
+                append("24 Hour App Usage:\n\n")
                 for ((packageName, time) in usageList) {
                     val hours = time / (1000 * 60 * 60)
                     val minutes = (time % (1000 * 60 * 60)) / (1000 * 60)
