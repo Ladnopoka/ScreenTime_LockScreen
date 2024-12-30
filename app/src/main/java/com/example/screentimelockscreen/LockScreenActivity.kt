@@ -1,5 +1,6 @@
 package com.example.screentimelockscreen
 
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -28,9 +29,25 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import android.content.res.Resources
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import java.io.InputStream
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.charts.BarChart
+import com.github.mikephil.charting.components.XAxis
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
 class LockScreenActivity : ComponentActivity() {
     private val appUsageData = mutableStateOf<List<Pair<String, Long>>>(emptyList())
@@ -61,24 +78,26 @@ class LockScreenActivity : ComponentActivity() {
     // Mutable queue for the shuffled image IDs
     private val imageQueue = mutableListOf<Int>()
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ScreenTimeLockScreenTheme {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    val bitmap = currentImageBitmap.value
-                    if (bitmap != null) {
-                        Image(
-                            bitmap = bitmap,
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    // Display app usage data
-                    AppUsageDisplay()
-                }
+                AppUsageScreen(this)
+//                Box(modifier = Modifier.fillMaxSize()) {
+//                    val bitmap = currentImageBitmap.value
+//                    if (bitmap != null) {
+//                        Image(
+//                            bitmap = bitmap,
+//                            contentDescription = null,
+//                            modifier = Modifier.fillMaxSize(),
+//                            contentScale = ContentScale.Crop
+//                        )
+//                    }
+//
+//                    // Display app usage data
+//                    AppUsageDisplay()
+//                }
             }
         }
 
@@ -158,9 +177,15 @@ class LockScreenActivity : ComponentActivity() {
         Log.d("LockScreenActivityImg", "Background image refreshed to ID: $nextImage")
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     @Composable
     fun AppUsageDisplay() {
         val usageList = appUsageData.value // Observe changes in app usage data
+
+        // Retrieve weekly data
+        val context = LocalContext.current
+        val weeklyUsageData = remember { UsageStatsHelper.getWeeklyAppUsage(context) }
+        val barData = remember { prepareBarGraphData(weeklyUsageData) }
         Log.d("UsageListSeeWhatsUP", "Usage List: $usageList")
 
         Text(
@@ -197,5 +222,94 @@ class LockScreenActivity : ComponentActivity() {
                 textAlign = TextAlign.Left
             )
         )
+    }
+
+    private fun prepareBarGraphData(weeklyUsageData: Map<String, Float>): BarData {
+        val entries = mutableListOf<BarEntry>()
+        val daysOfWeek = listOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
+        for ((index, day) in daysOfWeek.withIndex()) {
+            val usageHours = weeklyUsageData[day] ?: 0f
+            entries.add(BarEntry(index.toFloat(), usageHours))
+        }
+
+        val dataSet = BarDataSet(entries, "Weekly App Usage (Hours)").apply {
+            valueTextSize = 12f
+        }
+
+        return BarData(dataSet)
+    }
+
+    @Composable
+    fun WeeklyUsageBarGraph(data: BarData) {
+        AndroidView(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(200.dp), // Set height explicitly
+            factory = { context ->
+                BarChart(context).apply {
+                    this.data = data
+                    description.isEnabled = false
+                    xAxis.apply {
+                        valueFormatter = IndexAxisValueFormatter(
+                            listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+                        )
+                        granularity = 1f
+                        position = XAxis.XAxisPosition.BOTTOM
+                        textSize = 12f
+                    }
+                    axisLeft.axisMinimum = 0f
+                    axisRight.isEnabled = false
+                    invalidate() // Refresh chart
+                }
+            }
+        )
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    @Composable
+    fun AppUsageScreen(context: Context) {
+        val weeklyUsageData = remember { UsageStatsHelper.getWeeklyAppUsage(context) }
+        val barData = remember { prepareBarGraphData(weeklyUsageData) }
+        val currentImageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
+
+        // Load the background image
+        currentImageBitmap.value = loadImageFromRaw(context)
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Display background image
+            currentImageBitmap.value?.let { bitmap ->
+                Image(
+                    bitmap = bitmap,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+                // Bar graph
+                WeeklyUsageBarGraph(data = barData)
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // App usage stats
+                AppUsageDisplay()
+            }
+        }
+    }
+
+
+    private fun loadImageFromRaw(context: Context): ImageBitmap? {
+        val resourceId = R.raw.photo1 // Replace with logic to load desired image
+        return try {
+            val inputStream: InputStream = context.resources.openRawResource(resourceId)
+            val bitmap = android.graphics.BitmapFactory.decodeStream(inputStream)
+            inputStream.close()
+            bitmap.asImageBitmap()
+        } catch (e: Exception) {
+            Log.e("ImageLoad", "Failed to load image: $resourceId", e)
+            null
+        }
     }
 }
