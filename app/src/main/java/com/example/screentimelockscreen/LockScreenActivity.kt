@@ -273,6 +273,11 @@ class LockScreenActivity : ComponentActivity() {
                     description.isEnabled = false
                     legend.isEnabled = false
 
+                    // Disable interactions
+                    setScaleEnabled(false) // Disable pinch-to-zoom
+                    isDragEnabled = false // Disable dragging
+                    //setTouchEnabled(false) // Disable all touch interactions
+
                     // X-axis styling
                     xAxis.apply {
                         valueFormatter = IndexAxisValueFormatter(
@@ -296,10 +301,6 @@ class LockScreenActivity : ComponentActivity() {
                     // Customize bar value text
                     data.setValueTextSize(12f)
                     data.setValueTextColor(android.graphics.Color.WHITE) // Change text color to white
-
-                    // Shadow effect for text (Optional, requires custom logic in MPAndroidChart)
-                    // Note: MPAndroidChart does not natively support shadow styling for text.
-                    // You would need to override drawing methods for advanced shadow effects.
 
                     // Refresh chart
                     invalidate()
