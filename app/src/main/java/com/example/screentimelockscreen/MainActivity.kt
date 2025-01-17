@@ -2,29 +2,6 @@ package com.example.screentimelockscreen
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.screentimelockscreen.ui.theme.ScreenTimeLockScreenTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
-import kotlin.random.Random
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -34,10 +11,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import android.app.AppOpsManager
 import android.content.Context
-import android.app.usage.UsageStats
-import android.app.usage.UsageStatsManager
 import android.widget.Toast
-import java.util.Calendar
+
+
 
 // Main entry point of the app
 // Handles Permissions, Overlay Permissions, Usage Stats Permissions

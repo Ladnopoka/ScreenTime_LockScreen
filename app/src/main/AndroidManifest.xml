@@ -32,6 +32,8 @@
         <activity android:name=".LockScreenActivity"
             android:theme="@style/Theme.ScreenTimeLockScreen"
             android:launchMode="singleTask"
+            android:showOnLockScreen="true"
+            android:excludeFromRecents="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -43,6 +45,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.SCREEN_ON" />
+                <action android:name="android.intent.action.USER_PRESENT" />
             </intent-filter>
         </receiver>
         <service
