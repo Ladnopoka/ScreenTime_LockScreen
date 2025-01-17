@@ -10,8 +10,6 @@ ScreenTime LockScreen is an Android application that provides a custom lock scre
 - Customizable UI with Jetpack Compose.
 - Handles screen-on events to show the custom lock screen.
 
-## Getting Started
-
 ### Prerequisites
 
 - Android Studio (latest version recommended)
